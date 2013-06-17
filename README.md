@@ -26,6 +26,7 @@ Might Do
 
 Low Possibility
 -----------------------------------------
+ * No Triggers, just conditions (make all string triggers be equivalence conditions, and date times be more specific to ideas).
 
 How To Use This Library
 =========================================

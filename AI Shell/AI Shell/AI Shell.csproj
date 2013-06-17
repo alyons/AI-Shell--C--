@@ -43,6 +43,7 @@
     <Compile Include="AIShellMathHelper.cs" />
     <Compile Include="AIShellUtility.cs" />
     <Compile Include="Condition.cs" />
+    <Compile Include="NeoRule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Rule.cs" />
   </ItemGroup>
