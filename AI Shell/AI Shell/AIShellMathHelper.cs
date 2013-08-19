@@ -22,7 +22,7 @@ using System.Text;
 
 namespace AI_Shell
 {
-    public static class AIShellMathHelper
+    public static class MathHelper
     {
         public static double Mean<T>(List<T> data)
         {

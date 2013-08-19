@@ -5,11 +5,11 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{7B576CD4-7275-4644-AA37-DBDCA6E3876F}</ProjectGuid>
+    <ProjectGuid>{39017989-6F70-438E-BC18-3E08BB65F2F8}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>AI_Shell</RootNamespace>
-    <AssemblyName>AI Shell</AssemblyName>
+    <RootNamespace>AIShellLibraryTest</RootNamespace>
+    <AssemblyName>AIShellLibraryTest</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -31,6 +31,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="nunit.framework, Version=2.6.2.12296, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -40,11 +41,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AIShellMathHelper.cs" />
-    <Compile Include="AIShellUtility.cs" />
-    <Compile Include="Condition.cs" />
-    <Compile Include="Rule.cs" />
+    <Compile Include="ConditionTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AI Shell\AI Shell.csproj">
+      <Project>{7B576CD4-7275-4644-AA37-DBDCA6E3876F}</Project>
+      <Name>AI Shell</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
