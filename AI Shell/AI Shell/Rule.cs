@@ -98,6 +98,11 @@ namespace AI_Shell
             get;
             protected set;
         }
+        public RuleEvaluationFlags RuleEvaluationFlags
+        {
+            get;
+            set;
+        }
         #endregion
 
         #region Constructors
@@ -109,6 +114,7 @@ namespace AI_Shell
             this.Parent = null;
             Priority = Int32.MaxValue;
             Weight = 0;
+            RuleEvaluationFlags = AI_Shell.RuleEvaluationFlags.Standard;
         }
         public Rule(String name)
             :this()
@@ -259,17 +265,17 @@ namespace AI_Shell
         }
         #endregion
         #region Evaluate Rules
-        public Rule EvaluateRules(Dictionary<string, object> dataDictionary)
+        public virtual Rule EvaluateRules(Dictionary<string, object> dataDictionary)
         {
-            return EvaluateRules(dataDictionary, RuleEvaluationFlags.Standard);
+            return EvaluateRules(dataDictionary, RuleEvaluationFlags);
         }
-        public Rule EvaluateRules(Dictionary<string, object> dataDictionary, RuleEvaluationFlags ruleFlags)
+        public virtual Rule EvaluateRules(Dictionary<string, object> dataDictionary, RuleEvaluationFlags ruleFlags)
         {
             if (Conditions.Any(c => !c.EvaluateCondition(dataDictionary))) return null;
 
             List<Rule> rulesMet = new List<Rule>();
 
-            rulesMet = EvaluateSubRules(dataDictionary, ruleFlags);
+            rulesMet = EvaluateSubRules(dataDictionary);
             if (ReturnSelf) rulesMet.Add(this);
             if ((ruleFlags & RuleEvaluationFlags.UsePriority) == RuleEvaluationFlags.UsePriority) HighestPriority(ref rulesMet);
             if ((ruleFlags & RuleEvaluationFlags.UseWeight) == RuleEvaluationFlags.UseWeight) HighestWeight(ref rulesMet);
@@ -283,56 +289,56 @@ namespace AI_Shell
                 return null;
             
         }
-        protected List<Rule> EvaluateSubRules(Dictionary<string, object> dataDictionary, RuleEvaluationFlags ruleFlags)
+        protected virtual List<Rule> EvaluateSubRules(Dictionary<string, object> dataDictionary)
         {
             List<Rule> output = new List<Rule>();
 
-            if ((ruleFlags & RuleEvaluationFlags.ReturnRandom) == RuleEvaluationFlags.ReturnRandom)
+            if ((RuleEvaluationFlags & RuleEvaluationFlags.ReturnRandom) == RuleEvaluationFlags.ReturnRandom)
             {
                 foreach (Rule subRule in SubRules)
                 {
-                    output.AddRange(subRule.EvaluateAllRules(dataDictionary, ruleFlags));
+                    output.AddRange(subRule.EvaluateAllRules(dataDictionary));
                 }
             }
             else
             {
                 foreach (Rule subRule in SubRules)
                 {
-                    output.Add(subRule.EvaluateRules(dataDictionary, ruleFlags));
+                    output.Add(subRule.EvaluateRules(dataDictionary));
                 }
             }
 
             return output;
         }
-        protected List<Rule> EvaluateAllRules(Dictionary<string, object> dataDictionary, RuleEvaluationFlags ruleFlags)
+        protected virtual List<Rule> EvaluateAllRules(Dictionary<string, object> dataDictionary)
         {
             if (Conditions.Any(c => !c.EvaluateCondition(dataDictionary))) return null;
 
             List<Rule> rulesMet = new List<Rule>();
 
-            rulesMet = EvaluateSubRules(dataDictionary, ruleFlags);
+            rulesMet = EvaluateSubRules(dataDictionary);
             if (ReturnSelf) rulesMet.Add(this);
-            if ((ruleFlags & RuleEvaluationFlags.UsePriority) == RuleEvaluationFlags.UsePriority) HighestPriority(ref rulesMet);
-            if ((ruleFlags & RuleEvaluationFlags.UseWeight) == RuleEvaluationFlags.UseWeight) HighestWeight(ref rulesMet);
+            if ((RuleEvaluationFlags & RuleEvaluationFlags.UsePriority) == RuleEvaluationFlags.UsePriority) HighestPriority(ref rulesMet);
+            if ((RuleEvaluationFlags & RuleEvaluationFlags.UseWeight) == RuleEvaluationFlags.UseWeight) HighestWeight(ref rulesMet);
 
             if (rulesMet.Count > 0)
                 return rulesMet;
             else
                 return null;
         }
-        protected void HighestPriority(ref List<Rule> rules)
+        protected virtual void HighestPriority(ref List<Rule> rules)
         {
             int lowestValue = Int32.MaxValue;
             foreach (Rule rule in rules) lowestValue = Math.Min(lowestValue, rule.Priority);
             rules.RemoveAll(r => r.Priority > lowestValue);
         }
-        protected void HighestWeight(ref List<Rule> rules)
+        protected virtual void HighestWeight(ref List<Rule> rules)
         {
             int highestValue = Int32.MinValue;
             foreach (Rule rule in rules) highestValue = Math.Max(highestValue, rule.Weight);
             rules.RemoveAll(r => r.Weight < highestValue);
         }
-        protected Rule RandomRule(ref List<Rule> rules)
+        protected virtual Rule RandomRule(ref List<Rule> rules)
         {
             int max = 0;
             int target = 0;
