@@ -26,21 +26,17 @@ namespace AI_Shell
     public enum RuleEvaluationFlags
     {
         None = 0x00,
-        UseTriggers = 0x01,
-        UsePriority = UseTriggers << 1,
+        UsePriority = 0x01,
         UseWeight = UsePriority << 1,
         ReturnRandom = UseWeight << 1,
-        Standard = UseTriggers | UsePriority | UseWeight,
-        Question = Standard | ReturnRandom
+        Standard = UsePriority | UseWeight
     }
 
-    public class Rule : IComparable<Rule>
+    public class Rule
     {
         #region Variables
         private List<Condition> conditions;
         private List<Rule> subRules;
-        private List<String> triggers;
-        const String hashModifier = "RulesForAIShellMetalGear";
         #endregion
 
         #region Properties
@@ -79,10 +75,6 @@ namespace AI_Shell
             get;
             set;
         }
-        public List<String> Triggers
-        {
-            get { return triggers; }
-        }
         public Rule this[int index]
         {
             get { return subRules[index]; }
@@ -106,32 +98,33 @@ namespace AI_Shell
             get;
             protected set;
         }
+        public RuleEvaluationFlags RuleEvaluationFlags
+        {
+            get;
+            set;
+        }
         #endregion
 
         #region Constructors
-        private Rule()
+        protected Rule()
         {
             conditions = new List<Condition>();
             subRules = new List<Rule>();
             ReturnSelf = true;
-            triggers = new List<String>();
             this.Parent = null;
             Priority = Int32.MaxValue;
             Weight = 0;
+            RuleEvaluationFlags = AI_Shell.RuleEvaluationFlags.Standard;
         }
         public Rule(String name)
-            : this()
+            :this()
         {
             Name = name;
         }
         public Rule(String name, List<Condition> conditions)
-            : this(name)
+            :this(name)
         {
             Conditions.AddRange(conditions);
-        }
-        public Rule(String name, List<Condition> conditions, List<String> triggers)
-        {
-            Triggers.AddRange(triggers);
         }
         #endregion
 
@@ -140,9 +133,6 @@ namespace AI_Shell
         public bool AddSubRule(Rule subRule)
         {
             if (SubRuleExists(s => s.Equals(subRule))) return false;
-
-            //if (!subRule.Triggers.TrueForAll(t => this.Triggers.Exists(o => o.Equals(t)))) return false;
-            if (!subRule.Triggers.All(t => this.Triggers.Contains(t))) return false;
 
             if (ConditionConflict(subRule)) return false;
 
@@ -221,9 +211,7 @@ namespace AI_Shell
         }
         public bool ConditionExists(Func<Condition, bool> match)
         {
-
             return conditions.Any(match);
-
         }
         public Condition FindCondition(Func<Condition, bool> match)
         {
@@ -238,75 +226,30 @@ namespace AI_Shell
             conditions.RemoveAt(index);
         }
         #endregion
-        #region Trigger Methods
-        public bool AddTrigger(String trigger)
-        {
-            if (TriggerExists(t => t.Equals(trigger))) return false;
-
-            triggers.Add(trigger);
-
-            if (Parent != null) Parent.AddTrigger(trigger);
-
-            return true;
-        }
-        public bool TriggerExists(Func<String, bool> match)
-        {
-
-            return triggers.Any(match);
-
-        }
-        public String FindTrigger(Func<String, bool> match)
-        {
-            return triggers.First(match);
-        }
-        public void RemoveTrigger(String trigger)
-        {
-            triggers.Remove(trigger);
-        }
-        public void RemoveTriggerAt(int index)
-        {
-            triggers.RemoveAt(index);
-        }
-        #endregion
         #region Variable List
-        public List<String> VariableList(List<String> triggers)
+        public List<String> VariableList()
         {
             List<String> output = new List<string>();
 
-            foreach (String trigger in triggers)
+            foreach (Condition condition in Conditions)
             {
-                if (TriggerExists(t => t.Equals(trigger)))
-                {
-                    foreach (Condition condition in Conditions)
-                    {
-                        if (!output.Contains(condition.FirstVariable))
-                            output.Add(condition.FirstVariable);
+                if (!output.Contains(condition.FirstVariable))
+                    output.Add(condition.FirstVariable);
 
-                        if (!output.Contains(condition.SecondVariable))
-                            output.Add(condition.SecondVariable);
-                    }
-                }
+                if (!output.Contains(condition.SecondVariable))
+                    output.Add(condition.SecondVariable);
             }
+                
 
             foreach (Rule subRule in SubRules)
-                foreach (String variable in subRule.VariableList(triggers))
+                foreach (String variable in subRule.VariableList())
                     if (!output.Contains(variable))
                         output.Add(variable);
 
             return output;
         }
-        public List<String> VariableList(String trigger)
-        {
-            List<String> triggers = new List<String>();
-            triggers.Add(trigger);
-            return VariableList(triggers);
-        }
-        public List<String> VariableList()
-        {
-            return VariableList(Triggers);
-        }
         #endregion
-        #region Overridden Methods
+        #region Overriden Methods
         public override bool Equals(object obj)
         {
             if (obj is Rule)
@@ -318,36 +261,21 @@ namespace AI_Shell
         }
         public override int GetHashCode()
         {
-            return Name.GetHashCode() ^ hashModifier.GetHashCode();
-        }
-        public int CompareTo(Rule other)
-        {
-            return Name.CompareTo(other.Name);
+            return this.Name.GetHashCode() * 97;
         }
         #endregion
         #region Evaluate Rules
-        public Rule EvaluateRules(Dictionary<string, object> dataDictionary, String trigger)
+        public virtual Rule EvaluateRules(Dictionary<string, object> dataDictionary)
         {
-            return EvaluateRules(dataDictionary, trigger, RuleEvaluationFlags.Standard);
+            return EvaluateRules(dataDictionary, RuleEvaluationFlags);
         }
-        public Rule EvaluateRules(Dictionary<string, object> dataDictionary, String trigger, RuleEvaluationFlags ruleFlags)
+        public virtual Rule EvaluateRules(Dictionary<string, object> dataDictionary, RuleEvaluationFlags ruleFlags)
         {
-            List<String> triggers = new List<String>();
-            triggers.Add(trigger);
-            return EvaluateRules(dataDictionary, triggers, ruleFlags);
-        }
-        public Rule EvaluateRules(Dictionary<string, object> dataDictionary, List<String> triggers)
-        {
-            return EvaluateRules(dataDictionary, triggers, RuleEvaluationFlags.Standard);
-        }
-        public Rule EvaluateRules(Dictionary<string, object> dataDictionary, List<String> triggers, RuleEvaluationFlags ruleFlags)
-        {
-            if (!(Triggers.Any(t => triggers.Contains(t)) || IsRoot)) return null;
             if (Conditions.Any(c => !c.EvaluateCondition(dataDictionary))) return null;
 
             List<Rule> rulesMet = new List<Rule>();
 
-            rulesMet = EvaluateSubRules(dataDictionary, triggers, ruleFlags);
+            rulesMet = EvaluateSubRules(dataDictionary);
             if (ReturnSelf) rulesMet.Add(this);
             if ((ruleFlags & RuleEvaluationFlags.UsePriority) == RuleEvaluationFlags.UsePriority) HighestPriority(ref rulesMet);
             if ((ruleFlags & RuleEvaluationFlags.UseWeight) == RuleEvaluationFlags.UseWeight) HighestWeight(ref rulesMet);
@@ -359,59 +287,58 @@ namespace AI_Shell
                     return rulesMet[0];
             else
                 return null;
+            
         }
-        protected List<Rule> EvaluateSubRules(Dictionary<string, object> dataDictionary, List<String> triggers, RuleEvaluationFlags ruleFlags)
+        protected virtual List<Rule> EvaluateSubRules(Dictionary<string, object> dataDictionary)
         {
             List<Rule> output = new List<Rule>();
 
-            if ((ruleFlags & RuleEvaluationFlags.ReturnRandom) == RuleEvaluationFlags.ReturnRandom)
+            if ((RuleEvaluationFlags & RuleEvaluationFlags.ReturnRandom) == RuleEvaluationFlags.ReturnRandom)
             {
                 foreach (Rule subRule in SubRules)
                 {
-                    output.AddRange(subRule.EvaluateAllRules(dataDictionary, triggers, ruleFlags));
+                    output.AddRange(subRule.EvaluateAllRules(dataDictionary));
                 }
             }
             else
             {
                 foreach (Rule subRule in SubRules)
                 {
-                    output.Add(subRule.EvaluateRules(dataDictionary, triggers, ruleFlags));
+                    output.Add(subRule.EvaluateRules(dataDictionary));
                 }
             }
 
             return output;
         }
-        protected List<Rule> EvaluateAllRules(Dictionary<string, object> dataDictionary, List<String> triggers, RuleEvaluationFlags ruleFlags)
+        protected virtual List<Rule> EvaluateAllRules(Dictionary<string, object> dataDictionary)
         {
-            if (!(Triggers.Any(t => triggers.Contains(t)) || IsRoot)) return null;
             if (Conditions.Any(c => !c.EvaluateCondition(dataDictionary))) return null;
 
             List<Rule> rulesMet = new List<Rule>();
 
-            rulesMet = EvaluateSubRules(dataDictionary, triggers, ruleFlags);
+            rulesMet = EvaluateSubRules(dataDictionary);
             if (ReturnSelf) rulesMet.Add(this);
-            if ((ruleFlags & RuleEvaluationFlags.UsePriority) == RuleEvaluationFlags.UsePriority) HighestPriority(ref rulesMet);
-            if ((ruleFlags & RuleEvaluationFlags.UseWeight) == RuleEvaluationFlags.UseWeight) HighestWeight(ref rulesMet);
+            if ((RuleEvaluationFlags & RuleEvaluationFlags.UsePriority) == RuleEvaluationFlags.UsePriority) HighestPriority(ref rulesMet);
+            if ((RuleEvaluationFlags & RuleEvaluationFlags.UseWeight) == RuleEvaluationFlags.UseWeight) HighestWeight(ref rulesMet);
 
             if (rulesMet.Count > 0)
                 return rulesMet;
             else
                 return null;
         }
-        protected void HighestPriority(ref List<Rule> rules)
+        protected virtual void HighestPriority(ref List<Rule> rules)
         {
-            int lowestPriority = Int32.MaxValue;
-            foreach (Rule rule in rules) lowestPriority = Math.Min(lowestPriority, rule.Priority);
-            List<String> asdfsafas = new List<string>();
-            rules.RemoveAll(r => r.Priority != lowestPriority);
+            int lowestValue = Int32.MaxValue;
+            foreach (Rule rule in rules) lowestValue = Math.Min(lowestValue, rule.Priority);
+            rules.RemoveAll(r => r.Priority > lowestValue);
         }
-        protected void HighestWeight(ref List<Rule> rules)
+        protected virtual void HighestWeight(ref List<Rule> rules)
         {
-            int highestWeight = Int32.MinValue;
-            foreach (Rule rule in rules) highestWeight = Math.Max(highestWeight, rule.Weight);
-            rules.RemoveAll(r => r.Weight != highestWeight);
+            int highestValue = Int32.MinValue;
+            foreach (Rule rule in rules) highestValue = Math.Max(highestValue, rule.Weight);
+            rules.RemoveAll(r => r.Weight < highestValue);
         }
-        protected Rule RandomRule(ref List<Rule> rules)
+        protected virtual Rule RandomRule(ref List<Rule> rules)
         {
             int max = 0;
             int target = 0;
@@ -428,7 +355,17 @@ namespace AI_Shell
                 if (target <= runningNumber) return rule;
             }
 
-            throw new Exception("Failed to pull out a random rule.");
+            throw new Exception("Failed to return a random rule.");
+        }
+        #endregion
+        #region Helper Methods
+        public int CompareByWeight(Rule other)
+        {
+            return Weight.CompareTo(other.Weight);
+        }
+        public int CompareByPriority(Rule other)
+        {
+            return Priority.CompareTo(other.Priority);
         }
         #endregion
         #endregion
