@@ -53,6 +53,7 @@ namespace AI_Shell
         #endregion
 
         #region Properties
+        public int ID { get; set; }
         public string FirstVariable { get; set; }
         public string SecondVariable { get; set; }
         public double FirstVariableModifier { get; set; }
@@ -82,6 +83,11 @@ namespace AI_Shell
         {
             FirstVariableModifier = firstVarMod;
             SecondVariableModifier = secondVarMod;
+        }
+        public Condition(int id, string firstVar, string secondVar, Relation goal, double firstVarMod, double secondVarMod)
+            : this(firstVar, secondVar, goal, firstVarMod, secondVarMod)
+        {
+            ID = id;
         }
         #endregion
 
