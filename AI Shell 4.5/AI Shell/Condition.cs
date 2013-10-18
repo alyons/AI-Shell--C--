@@ -107,7 +107,7 @@ namespace AI_Shell
         {
             if ((Goal & Relation.OrderRelation) != 0)
             {
-                if (IsNumeric(data0) && IsNumeric(data1))
+                if (AIShellMathHelper.IsNumeric(data0) && AIShellMathHelper.IsNumeric(data1))
                 {
                     try
                     {
@@ -265,18 +265,6 @@ namespace AI_Shell
             }
 
             return false;
-        }
-        public static bool IsNumeric(object value)
-        {
-            return value is short
-                || value is ushort
-                    || value is int
-                    || value is uint
-                    || value is long
-                    || value is ulong
-                    || value is float
-                    || value is double
-                    || value is decimal;
         }
         public static bool IsList(object value)
         {
