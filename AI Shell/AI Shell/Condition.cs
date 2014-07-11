@@ -70,6 +70,14 @@ namespace AI_Shell
         #endregion
 
         #region Constructors
+        public Condition()
+        {
+            FirstVariable = "1";
+            SecondVariable = "1";
+            FirstVariableModifier = 1.0;
+            SecondVariableModifier = 1.0;
+            Goal = Relation.EqualTo;
+        }
         public Condition(string firstVar, string secondVar, Relation goal)
         {
             FirstVariable = firstVar;
@@ -365,7 +373,7 @@ namespace AI_Shell
         {
             return ((FirstVariable.Equals(other.FirstVariable) && SecondVariable.Equals(other.SecondVariable)) || (FirstVariable.Equals(other.SecondVariable) && SecondVariable.Equals(other.FirstVariable)));
         }
-        public static Condition Reorder(Condition condition)
+        public static Condition Reorder(this Condition condition)
         {
             if ((condition.Goal & Relation.ExistanceRelation) != 0) throw new ArgumentException("Cannot reorder existance conditions");
 
@@ -383,7 +391,7 @@ namespace AI_Shell
 
             return new Condition(condition.SecondVariable, condition.FirstVariable, newGoal, condition.SecondVariableModifier, condition.FirstVariableModifier);
         }
-        public static Condition Invert(Condition condition)
+        public static Condition Invert(this Condition condition)
         {
             Relation newGoal = Relation.None;
 
