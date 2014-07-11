@@ -1,4 +1,4 @@
-﻿/// Copyright Alexander Lyons 2013
+﻿/// Copyright Alexander Lyons 2013, 2014
 ///
 /// This file is part of AI Shell.
 ///
@@ -373,7 +373,7 @@ namespace AI_Shell
         {
             return ((FirstVariable.Equals(other.FirstVariable) && SecondVariable.Equals(other.SecondVariable)) || (FirstVariable.Equals(other.SecondVariable) && SecondVariable.Equals(other.FirstVariable)));
         }
-        public static Condition Reorder(this Condition condition)
+        public static Condition Reorder(Condition condition)
         {
             if ((condition.Goal & Relation.ExistanceRelation) != 0) throw new ArgumentException("Cannot reorder existance conditions");
 
@@ -391,7 +391,7 @@ namespace AI_Shell
 
             return new Condition(condition.SecondVariable, condition.FirstVariable, newGoal, condition.SecondVariableModifier, condition.FirstVariableModifier);
         }
-        public static Condition Invert(this Condition condition)
+        public static Condition Invert(Condition condition)
         {
             Relation newGoal = Relation.None;
 
